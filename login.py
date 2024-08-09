@@ -50,7 +50,7 @@ def login():
 
     root = tk.Tk()
     root.title("Hemobot")
-    root.iconbitmap('icons8-bot-16.ico')
+    root.iconbitmap('C:\project\hemobot\icons8-bot-16.ico')
 
     # Define o tamanho da janela e centraliza
     largura, altura = 400, 350
@@ -69,7 +69,7 @@ def login():
     frame.columnconfigure(1, weight=3)
 
     # Carregar e configurar a imagem da logo
-    logo = Image.open("logo-hemobot.png")  # Substitua pelo caminho da sua logo
+    logo = Image.open('C:\project\hemobot\logo-hemobot.png')  
     logo = logo.resize((150, 150), Image.Resampling.LANCZOS)  # Redimensiona a logo
     logo_photo = ImageTk.PhotoImage(logo)
 

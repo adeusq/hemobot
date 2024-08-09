@@ -33,7 +33,7 @@ def perguntar_linha_inicio():
     root = tk.Tk()
     root.title("Preencher Planilha - Hemobot")
     root.resizable(False, False)
-    root.iconbitmap('icons8-bot-16.ico')
+    root.iconbitmap('C:\project\hemobot\icons8-bot-16.ico')
 
     frame = tk.Frame(root, padx=20, pady=20)
     frame.pack(expand=True, fill=tk.BOTH)
@@ -99,7 +99,7 @@ def mostrar_menu_principal():
     root = tk.Tk()
     root.title("Hemobot - Sistema de Automação")
     root.resizable(False, False)
-    root.iconbitmap('icons8-bot-16.ico')
+    root.iconbitmap('C:\project\hemobot\icons8-bot-16.ico')
 
     # Criar o frame para as opções de menu
     menu_frame = tk.Frame(root)
