@@ -13,6 +13,8 @@ def preencher_planilha(linha_inicio):
     workbook = openpyxl.load_workbook('todos CORE.xlsx')
     pagina_genotipagem = workbook['consulta_PF']
     indice_coluna_destino = 0
+    indice_coluna_abo = 1
+    indice_coluna_rhd = 2
     
     linhas_para_atualizar = [
         linha for linha in pagina_genotipagem.iter_rows(min_row=linha_inicio)
@@ -27,25 +29,78 @@ def preencher_planilha(linha_inicio):
         if linha[indice_coluna_destino].value is not None:
             continue
 
-        num_amostra = linha[1].value
+        num_amostra = linha[4].value
         pyperclip.copy(num_amostra)
-        pyautogui.click(183, 326)
+        
+        # Captura da PF
+        pyautogui.click(195,325)
         pyautogui.write('=')
         pyautogui.hotkey('ctrl', 'v')
         pyautogui.write('006')
         pyautogui.press('enter')
         pyautogui.sleep(2) 
-        pyautogui.click(191, 350)        
+        pyautogui.click(200, 349)        
         pyautogui.hotkey('ctrl', 'a')
         pyautogui.hotkey('ctrl', 'c')
 
         info_campo = pyperclip.paste()
 
         linha[indice_coluna_destino].value = info_campo 
+                
+        # Captura Tipagem ABO
+        pyautogui.click(356, 353)  
+        pyautogui.hotkey('ctrl', 'a')
+        pyautogui.hotkey('ctrl', 'c')
+        abo = pyperclip.paste()
+        linha[indice_coluna_abo].value = abo
+
+        # Captura Tipagem RhD
+        pyautogui.click(449, 350)  
+        pyautogui.hotkey('ctrl', 'a')
+        pyautogui.hotkey('ctrl', 'c')
+        rhd = pyperclip.paste()
+        linha[indice_coluna_rhd].value = rhd
     
     workbook.save('todos CORE.xlsx')
     messagebox.showinfo("Sucesso", "A planilha foi atualizada com sucesso!")
 
+
+def preencher_fenotipagem(linha_inicio):
+    workbook = openpyxl.load_workbook('todos CORE.xlsx')
+    pagina_fenotipagem = workbook['consulta_PF']
+    indice_coluna_amostra = 3
+    
+    linhas_para_atualizar = [
+    linha for linha in pagina_fenotipagem.iter_rows(min_row=linha_inicio)
+    if linha[indice_coluna_amostra].value is None
+    ]
+    
+    if not linhas_para_atualizar:
+        messagebox.showinfo("Nenhuma atualização", "Não há linhas para atualizar a partir da linha especificada.")
+        return
+
+    for linha in pagina_fenotipagem.iter_rows(min_row=linha_inicio):
+        if linha[indice_coluna_amostra].value is not None:
+            continue
+
+        # Captura o número da amostra
+        num_pf = linha[0].value
+        pyperclip.copy(num_pf)
+        pyautogui.click(676, 276)  # Coordenadas onde a amostra é inserida
+        pyautogui.hotkey('ctrl', 'v')
+        pyautogui.click(678, 480)  # Coordenadas onde a amostra é inserida
+        pyautogui.click(220, 325)  # Coordenadas onde a amostra é inserida
+        pyautogui.click(249, 627)  # Coordenadas onde a amostra é inserida
+        pyautogui.hotkey('ctrl', 'c')
+        pyautogui.sleep(2)
+        
+        info_campo = pyperclip.paste()
+
+        linha[indice_coluna_amostra].value = info_campo 
+        
+    workbook.save('todos CORE.xlsx')  # Salve o arquivo após as atualizações
+    messagebox.showinfo("Sucesso", "A fenotipagem foi atualizada com sucesso!")
+    
 def atualizar_progresso(progresso, valor):
     progresso['value'] = valor
     progresso.update_idletasks()
