@@ -1,0 +1,7 @@
+tkinter-page
+PILLOW
+openpyxl
+pandas
+pyautogui
+pyperclip
+pyinstaller

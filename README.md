@@ -1,25 +1,39 @@
-# Sistema de Automatização de Planilhas
+# Hemobot - Sistema Automatizado de Dados
 
-Este projeto é um sistema de automatização de tarefas para planilhas do Excel, desenvolvido em Python usando a biblioteca Tkinter para a interface gráfica. O sistema permite preencher planilhas e exportar dados para arquivos de texto (.txt).
+## Descrição
+O Hemobot é um sistema automatizado desenvolvido em Python para facilitar a manipulação de planilhas Excel, exportação de dados em formato TXT, conversão de arquivos XLS para XLSX e concatenação de dados de genotipagem. 
 
 ## Funcionalidades
 
-- **Preencher Planilha**: Permite iniciar o preenchimento de uma planilha do Excel a partir de uma linha específica.
-- **Exportar Dados para TXT**: Exporta dados de uma planilha do Excel para um arquivo de texto a partir de uma linha específica.
-- **Menu Principal**: Interface principal do sistema que permite acessar as funcionalidades de preenchimento e exportação.
-- **Tela de Sobre**: Mostra informações sobre o desenvolvedor do sistema.
-- **Login e Autorização**: Tela de login com autenticação básica e persistência de login por um período específico (ou indefinidamente, conforme configuração).
+### 1. Automatizar Planilha - Excel
+- **Descrição**: Preenche automaticamente uma planilha Excel com dados processados.
+- **Uso**: Seleciona o arquivo Excel e o sistema preenche as células com base nos dados fornecidos.
 
-## Tecnologias Utilizadas
+### 2. Exportar Dados - TXT
+- **Descrição**: Exporta os dados de uma planilha Excel para um arquivo TXT.
+- **Uso**: Seleciona a planilha Excel e define o nome do arquivo de saída em TXT.
 
-- **Python 3.x**: Linguagem de programação utilizada para desenvolver o sistema.
-- **Tkinter**: Biblioteca para a criação da interface gráfica do usuário.
-- **openpyxl**: Biblioteca para manipulação de arquivos Excel (se necessário).
-- **os**: Biblioteca para operações com o sistema operacional, como a verificação de arquivos.
+### 3. Converter XLS para XLSX
+- **Descrição**: Converte arquivos no formato XLS para XLSX.
+- **Uso**: Seleciona o arquivo XLS e o sistema gera o arquivo XLSX correspondente.
+
+### 4. Concatenar Dados - Genotipagem
+- **Descrição**: Concatena e organiza dados de genotipagem em um único arquivo.
+- **Uso**: Seleciona os arquivos de genotipagem para concatenar os dados.
+
+## Interface Gráfica (GUI)
+O Hemobot possui uma interface gráfica desenvolvida com Tkinter, onde o usuário pode interagir com as funcionalidades mencionadas através de botões intuitivos.
 
 ## Requisitos
+- Python 3.7+
+- Bibliotecas: `tkinter`, `openpyxl`, `pyautogui`, `pyperclip`, `Pillow`, `pandas`
 
-Antes de executar o projeto, certifique-se de que você possui o Python 3.x instalado e que as bibliotecas necessárias estão disponíveis. Você pode instalar as bibliotecas necessárias usando o `pip`:
+## Instalação
+1. Clone o repositório:
 
-```bash
-pip install openpyxl
+   ```bash
+   git clone https://github.com/usuario/hemobot.git
+
+2. Download das dependências:
+   ```bash
+   pip install -r requirements.txt
