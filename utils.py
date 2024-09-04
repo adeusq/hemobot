@@ -1,7 +1,7 @@
 import openpyxl
 import pyperclip
 import pyautogui
-from tkinter import messagebox
+from tkinter import Tk, messagebox, filedialog
 import tkinter as tk
 import time
 import pandas as pd
@@ -9,12 +9,28 @@ import re
 import os
 
 def preencher_planilha(linha_inicio):
-    # Carregar a planilha
-    workbook = openpyxl.load_workbook('todos CORE.xlsx')
-    pagina_genotipagem = workbook['consulta_PF']
+    # Inicializa a janela do Tkinter e oculta a janela principal
+    root = Tk()
+    root.withdraw()
+    
+    # Abre uma janela de diálogo para o usuário escolher o arquivo Excel
+    arquivo_caminho = filedialog.askopenfilename(
+        title="Selecione o arquivo Excel",
+        filetypes=(("Arquivos Excel", "*.xlsx"), ("Todos os arquivos", "*.*"))
+    )
+    
+    # Verifica se o usuário selecionou um arquivo
+    if not arquivo_caminho:
+        messagebox.showwarning("Nenhum arquivo selecionado", "Por favor, selecione um arquivo para continuar.")
+        return
+    
+    # Carrega a planilha escolhida
+    workbook = openpyxl.load_workbook(arquivo_caminho)
+    pagina_genotipagem = workbook['doc_automatizado']
     indice_coluna_destino = 0
     indice_coluna_abo = 1
     indice_coluna_rhd = 2
+    indice_coluna_fenotipagem = 3
     
     linhas_para_atualizar = [
         linha for linha in pagina_genotipagem.iter_rows(min_row=linha_inicio)
@@ -33,18 +49,17 @@ def preencher_planilha(linha_inicio):
         pyperclip.copy(num_amostra)
         
         # Captura da PF
-        pyautogui.click(195,325)
+        pyautogui.click(195, 325)
         pyautogui.write('=')
         pyautogui.hotkey('ctrl', 'v')
         pyautogui.write('006')
         pyautogui.press('enter')
-        pyautogui.sleep(2) 
+        pyautogui.sleep(2)
         pyautogui.click(200, 349)        
         pyautogui.hotkey('ctrl', 'a')
         pyautogui.hotkey('ctrl', 'c')
 
         info_campo = pyperclip.paste()
-
         linha[indice_coluna_destino].value = info_campo 
                 
         # Captura Tipagem ABO
@@ -60,10 +75,59 @@ def preencher_planilha(linha_inicio):
         pyautogui.hotkey('ctrl', 'c')
         rhd = pyperclip.paste()
         linha[indice_coluna_rhd].value = rhd
-    
-    workbook.save('todos CORE.xlsx')
-    messagebox.showinfo("Sucesso", "A planilha foi atualizada com sucesso!")
+        
+    # Segunda fase: Captura da fenotipagem, com navegação
+    for linha in linhas_para_atualizar:
+        pf = linha[indice_coluna_destino].value
+        if pf is None:
+            continue
+        
+        pyperclip.copy(pf)
+        
+        # Navegação para a página de fenotipagem
+        pyautogui.click(475, 155)  # Clicar na área para acessar a página de fenotipagem
+        pyautogui.sleep(1)
+        pyautogui.click(481, 341)  # Clicar no campo de entrada de PF
+        pyautogui.sleep(1)
+        pyautogui.click(697, 342)  # Clicar no campo de entrada de PF
+        pyautogui.sleep(1)
+        pyautogui.click(650, 272)  # Clicar no campo de entrada de PF
+        pyautogui.sleep(1)
+        pyautogui.hotkey('ctrl', 'v')  # Colar o número da amostra (PF)
+        pyautogui.sleep(2)
+        pyautogui.click(641, 485)  # Confirmar busca da fenotipagem
+        pyautogui.sleep(1)
+        pyautogui.click(201, 362)  # Selecionar informação para cópia
+        pyautogui.sleep(1)
+        pyautogui.click(243, 526)  # Selecionar informação para cópia
+        pyautogui.sleep(1)
+        pyautogui.click(192, 329)  # Selecionar informação para cópia
+        pyautogui.sleep(5)
 
+
+        # Captura da informação de fenotipagem
+        pyautogui.scroll(-500)  # Rolagem para baixo
+        pyautogui.sleep(2)
+
+        pyautogui.click(476, 461)  # Selecionar informação para cópia
+        pyautogui.hotkey('ctrl', 'a')
+        pyautogui.hotkey('ctrl', 'c')
+        fenotipagem = pyperclip.paste()
+        linha[indice_coluna_fenotipagem].value = fenotipagem
+    
+    salvar_caminho = filedialog.asksaveasfilename(
+        title="Salvar como",
+        defaultextension=".xlsx",
+        filetypes=(("Arquivos Excel", "*.xlsx"), ("Todos os arquivos", "*.*"))
+    )
+    
+    if not salvar_caminho:
+        messagebox.showwarning("Nenhum local de salvamento selecionado", "Por favor, selecione um local para salvar o arquivo.")
+        return
+    
+    # Salva as alterações no arquivo escolhido pelo usuário
+    workbook.save(salvar_caminho)
+    messagebox.showinfo("Sucesso", "A planilha foi atualizada e salva com sucesso!")
 
 def preencher_fenotipagem(linha_inicio):
     workbook = openpyxl.load_workbook('todos CORE.xlsx')
