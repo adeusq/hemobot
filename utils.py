@@ -104,7 +104,6 @@ def preencher_planilha(linha_inicio):
         pyautogui.click(192, 329)  # Selecionar informação para cópia
         pyautogui.sleep(5)
 
-
         # Captura da informação de fenotipagem
         pyautogui.scroll(-500)  # Rolagem para baixo
         pyautogui.sleep(2)
@@ -113,21 +112,58 @@ def preencher_planilha(linha_inicio):
         pyautogui.hotkey('ctrl', 'a')
         pyautogui.hotkey('ctrl', 'c')
         fenotipagem = pyperclip.paste()
-        linha[indice_coluna_fenotipagem].value = fenotipagem
-    
+        
+    # Definir os antígenos que sempre devem aparecer na linha de fenotipagem
+    antigenos_obrigatorios = ["c", "C", "E", "e", "K"]
+
+    # Função para verificar se uma linha contém os antígenos obrigatórios (com + ou -)
+    def contem_antigenos_obrigatorios(linha, antigenos):
+        for antigeno in antigenos:
+            if f"{antigeno}+" not in linha and f"{antigeno}-" not in linha:
+                return False
+        return True
+
+    # Procurar a linha que contém os antígenos obrigatórios
+    def localizar_fenotipagem_por_antigenos(texto, antigenos):
+        linhas = texto.split('\n')
+        for linha in linhas:
+            if contem_antigenos_obrigatorios(linha, antigenos):
+                return linha
+        return "Fenotipagem não encontrada"
+
+    # Exemplo de uso no código principal
+    linha_fenotipagem = localizar_fenotipagem_por_antigenos(fenotipagem, antigenos_obrigatorios)
+    print(f"Fenotipagem localizada: {linha_fenotipagem}")
+    linha[indice_coluna_fenotipagem].value = linha_fenotipagem
+
+    # Abre janela de diálogo para salvar o arquivo atualizado
     salvar_caminho = filedialog.asksaveasfilename(
         title="Salvar como",
         defaultextension=".xlsx",
         filetypes=(("Arquivos Excel", "*.xlsx"), ("Todos os arquivos", "*.*"))
     )
-    
-    if not salvar_caminho:
-        messagebox.showwarning("Nenhum local de salvamento selecionado", "Por favor, selecione um local para salvar o arquivo.")
-        return
-    
-    # Salva as alterações no arquivo escolhido pelo usuário
-    workbook.save(salvar_caminho)
-    messagebox.showinfo("Sucesso", "A planilha foi atualizada e salva com sucesso!")
+
+    # Salva o arquivo atualizado
+    if salvar_caminho:
+        workbook.save(salvar_caminho)
+        messagebox.showinfo("Arquivo salvo", f"Arquivo salvo com sucesso em {salvar_caminho}.")
+    else:
+        messagebox.showwarning("Salvamento cancelado", "Arquivo não foi salvo.")
+        
+        
+        #pyautogui.click(476, 461)  # Selecionar informação para cópia
+        #pyautogui.hotkey('ctrl', 'a')
+        #pyautogui.hotkey('ctrl', 'c')
+        #fenotipagem = pyperclip.paste()
+        
+        # Encontrar a parte após "Fenotipagem" e pegar a próxima linha
+        #if "Fenotipagem" in fenotipagem:
+        #    partes = fenotipagem.split("Fenotipagem", 1)  # Divide a string em duas partes, separadas por "Fenotipagem"
+        #    linha_fenotipagem = partes[1].strip().split('\n')[0]  # Remove espaços extras e pega a primeira linha após "Fenotipagem"
+        #else:
+        #    linha_fenotipagem = "Fenotipagem não encontrada"
+            
+        #linha[indice_coluna_fenotipagem].value = linha_fenotipagem
 
 def preencher_fenotipagem(linha_inicio):
     workbook = openpyxl.load_workbook('todos CORE.xlsx')
