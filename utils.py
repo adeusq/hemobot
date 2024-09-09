@@ -113,28 +113,15 @@ def preencher_planilha(linha_inicio):
         pyautogui.hotkey('ctrl', 'c')
         fenotipagem = pyperclip.paste()
         
-    # Definir os antígenos que sempre devem aparecer na linha de fenotipagem
-    antigenos_obrigatorios = ["c", "C", "E", "e", "K"]
-
-    # Função para verificar se uma linha contém os antígenos obrigatórios (com + ou -)
-    def contem_antigenos_obrigatorios(linha, antigenos):
-        for antigeno in antigenos:
-            if f"{antigeno}+" not in linha and f"{antigeno}-" not in linha:
-                return False
-        return True
-
-    # Procurar a linha que contém os antígenos obrigatórios
-    def localizar_fenotipagem_por_antigenos(texto, antigenos):
-        linhas = texto.split('\n')
-        for linha in linhas:
-            if contem_antigenos_obrigatorios(linha, antigenos):
-                return linha
-        return "Fenotipagem não encontrada"
-
-    # Exemplo de uso no código principal
-    linha_fenotipagem = localizar_fenotipagem_por_antigenos(fenotipagem, antigenos_obrigatorios)
-    print(f"Fenotipagem localizada: {linha_fenotipagem}")
-    linha[indice_coluna_fenotipagem].value = linha_fenotipagem
+        
+        # Encontrar a parte após "Fenotipagem" e pegar a próxima linha
+        if "Fenotipagem" in fenotipagem:
+            partes = fenotipagem.split("Fenotipagem", 1)  # Divide a string em duas partes, separadas por "Fenotipagem"
+            linha_fenotipagem = partes[1].strip().split('\n')[0]  # Remove espaços extras e pega a primeira linha após "Fenotipagem"
+        else:
+            linha_fenotipagem = "Fenotipagem não encontrada"
+            
+        linha[indice_coluna_fenotipagem].value = linha_fenotipagem
 
     # Abre janela de diálogo para salvar o arquivo atualizado
     salvar_caminho = filedialog.asksaveasfilename(
@@ -148,22 +135,7 @@ def preencher_planilha(linha_inicio):
         workbook.save(salvar_caminho)
         messagebox.showinfo("Arquivo salvo", f"Arquivo salvo com sucesso em {salvar_caminho}.")
     else:
-        messagebox.showwarning("Salvamento cancelado", "Arquivo não foi salvo.")
-        
-        
-        #pyautogui.click(476, 461)  # Selecionar informação para cópia
-        #pyautogui.hotkey('ctrl', 'a')
-        #pyautogui.hotkey('ctrl', 'c')
-        #fenotipagem = pyperclip.paste()
-        
-        # Encontrar a parte após "Fenotipagem" e pegar a próxima linha
-        #if "Fenotipagem" in fenotipagem:
-        #    partes = fenotipagem.split("Fenotipagem", 1)  # Divide a string em duas partes, separadas por "Fenotipagem"
-        #    linha_fenotipagem = partes[1].strip().split('\n')[0]  # Remove espaços extras e pega a primeira linha após "Fenotipagem"
-        #else:
-        #    linha_fenotipagem = "Fenotipagem não encontrada"
-            
-        #linha[indice_coluna_fenotipagem].value = linha_fenotipagem
+        messagebox.showwarning("Salvamento cancelado", "Arquivo não foi salvo.")     
 
 def preencher_fenotipagem(linha_inicio):
     workbook = openpyxl.load_workbook('todos CORE.xlsx')
@@ -205,45 +177,57 @@ def atualizar_progresso(progresso, valor):
     progresso['value'] = valor
     progresso.update_idletasks()
 
-def export_columns_to_txt(excel_file, sheet_name, txt_file, update_progress=None):
-    codigo_column_index = 8  
-    amostra_column_index = 1  
+def export_columns_to_txt(consulta_file, origem_file, consulta_sheet, origem_sheet, txt_file, update_progress=None):
+    codigo_column_index_origem = 8  # Índice da coluna do código de extração no arquivo de origem
+    amostra_column_index_origem = 4  # Índice da coluna onde está o número da amostra no arquivo de origem
+
+    # Carrega os arquivos de origem e consulta
+    workbook_origem = openpyxl.load_workbook(origem_file)
+    sheet_origem = workbook_origem[origem_sheet]
+
+    workbook_consulta = openpyxl.load_workbook(consulta_file)
+    sheet_consulta = workbook_consulta[consulta_sheet]
+
+    # Cria um conjunto de números de amostra do arquivo de consulta
+    amostras_consulta = {str(row[1].value).strip() for row in sheet_consulta.iter_rows(min_row=2) if row[1].value is not None}
     
-    workbook = openpyxl.load_workbook(excel_file)
-    sheet = workbook[sheet_name]
-
-    with open(txt_file, 'r', encoding='utf-8') as file:
-        linhas_txt = file.readlines()
-
+    # Inicializa o dicionário de códigos de extração
     codigo_para_amostra = {}
-    for row in sheet.iter_rows(min_row=2): 
-        codigo = row[codigo_column_index].value
-        amostra = row[amostra_column_index].value
-        if codigo is not None and amostra is not None:
-            codigo_para_amostra[str(codigo)] = str(amostra)
+    for row in sheet_origem.iter_rows(min_row=2):
+        amostra = str(row[amostra_column_index_origem].value).strip()
+        codigo = str(row[codigo_column_index_origem].value).strip()
 
-    total_linhas = len(linhas_txt)
+        # Se o número da amostra do arquivo de origem também estiver no arquivo de consulta, adiciona ao dicionário
+        if amostra in amostras_consulta:
+            codigo_para_amostra[amostra] = codigo
+
+    # Verifica se algum dado foi encontrado
+    if not codigo_para_amostra:
+        messagebox.showwarning("Aviso", "Nenhum dado correspondente encontrado entre os arquivos.")
+        return
+
+    total_linhas = len(codigo_para_amostra)
+    
+    # Gera o arquivo TXT com base na comparação de números de amostra
     with open(txt_file, 'w', encoding='utf-8') as file:
-        for i, linha in enumerate(linhas_txt):
-            codigo_txt = linha.strip()
-            if codigo_txt in codigo_para_amostra:
-                amostra = codigo_para_amostra[codigo_txt]
-                file.write(f"{amostra}\t{codigo_txt}\n")
-            else:
-                file.write(f"{codigo_txt}\n")
+        for i, (amostra, codigo) in enumerate(codigo_para_amostra.items()):
+            file.write(f"{amostra}\t{codigo}\n")
             if update_progress:
                 progress = (i + 1) / total_linhas * 100
                 update_progress(progress)
-                time.sleep(0.05)
+                time.sleep(0.05)  # Ajuste conforme necessário para a responsividade
 
     messagebox.showinfo("Sucesso", f'Dados exportados para {txt_file} com sucesso!')
 
+    
 def clean_column_name(col_name):
     return re.sub(r'\s*\(.*?\)\s*', '', col_name)
 
 def processar_fenotipagem(file_path):
     df = pd.read_excel(file_path, sheet_name='ID CORE XT Fenótipo')
+    
     resultados = []
+    
     for index, row in df.iterrows():
         amostra = row.iloc[0]
         match = re.search(r'B315\d+|B3121\d+', amostra)
@@ -251,6 +235,7 @@ def processar_fenotipagem(file_path):
             amostra_id = match.group()
         else:
             amostra_id = amostra
+            
         antigenos = []
         for col in df.columns[1:]:
             value = row[col]
@@ -270,19 +255,68 @@ def processar_fenotipagem(file_path):
 
         resultado = f"{amostra_id}: Fenotipagem deduzida a partir da genotipagem; {antigenos_str}".rstrip('; ').rstrip('.')
         resultados.append(resultado)
+        
+    # Abrir janela para o usuário escolher onde salvar o arquivo
+    output_file_path = filedialog.asksaveasfilename(
+        defaultextension=".txt",
+        filetypes=[("Arquivo de Texto", "*.txt")],
+        title="Salvar arquivo de resultados"
+    )
 
-    output_file_path = 'resultados_fenotipagem.txt'
-    with open(output_file_path, 'w', encoding='utf-8') as f:
-        for resultado in resultados:
-            f.write(resultado + '\n\n')
-
-    return output_file_path  
+    if output_file_path:
+            try:
+                with open(output_file_path, 'w', encoding='utf-8') as f:
+                    for resultado in resultados:
+                        f.write(resultado + '\n\n')
+                    messagebox.showinfo("Sucesso", f"Dados concatenados com sucesso e salvos em: {output_file_path}")
+            except Exception as e:
+                    messagebox.showerror("Erro", f"Ocorreu um erro ao salvar o arquivo: {e}")
+    else:
+        messagebox.showwarning("Cancelado", "Operação de salvamento cancelada.")
+            
+    return output_file_path 
 
 def converter_xls_para_xlsx(xls_file_path):
-    xls = pd.ExcelFile(xls_file_path)
-    xlsx_file_path = f'{os.path.splitext(xls_file_path)[0]}.xlsx'
-    with pd.ExcelWriter(xlsx_file_path) as writer:
-        for sheet_name in xls.sheet_names:
-            df = pd.read_excel(xls, sheet_name=sheet_name)
-            df.to_excel(writer, sheet_name=sheet_name, index=False)
+    # Configura a janela principal do Tkinter
+    root = tk.Tk()
+    root.withdraw()  # Esconde a janela principal
+
+    # Abre uma caixa de diálogo para o usuário escolher onde salvar o arquivo e o nome do arquivo
+    xlsx_file_path = filedialog.asksaveasfilename(
+        defaultextension=".xlsx",
+        filetypes=[("Arquivos Excel", "*.xlsx")],
+        title="Salvar como"
+    )
+
+    if not xlsx_file_path:
+        messagebox.showwarning("Cancelado", "Operação de salvamento cancelada.")
+        return None
+
+    try:
+        # Abre o arquivo Excel original
+        xls = pd.ExcelFile(xls_file_path)
+        
+        with pd.ExcelWriter(xlsx_file_path, engine='openpyxl') as writer:
+            for sheet_name in xls.sheet_names:
+                # Lê a planilha
+                df = pd.read_excel(xls, sheet_name=sheet_name, header=None)
+                
+                if sheet_name == 'ID CORE XT Fenótipo':
+                    # Remove as linhas de 1 a 19 (considerando que o índice é baseado em zero, isso exclui as linhas 2 a 20)
+                    df = df.drop(index=range(0, 19))
+                    
+                    # Mantém apenas as linhas até a linha 68 (ou seja, mantém as primeiras 68 linhas após a remoção)
+                    df = df.head(50)
+                    
+                    # Remove a linha de números (se estiver presente)
+                    df = df.reset_index(drop=True)
+                
+                # Escreve o DataFrame no novo arquivo Excel
+                df.to_excel(writer, sheet_name=sheet_name, index=False, header=False)
+        
+        messagebox.showinfo("Sucesso", f"Arquivo salvo com sucesso em: {xlsx_file_path}")
+
+    except Exception as e:
+        messagebox.showerror("Erro", f"Ocorreu um erro ao salvar o arquivo: {e}")
+
     return xlsx_file_path

@@ -50,13 +50,14 @@ def perguntar_linha_inicio():
     centralizar_janela(root, 400, 200)
     root.mainloop()
 
-def mostrar_barra_progresso(txt_file):
+def mostrar_barra_progresso(txt_file, consulta_file, origem_file):
     def tarefa_longas():
         def update_progress(value):
             progresso['value'] = value
             root.update_idletasks()
 
-        export_columns_to_txt('GENOTIPAGEM - Doadores e pacientes UNIFICADA.xlsx', 'DNA extraídos', txt_file, update_progress)
+        # Chama a função para exportar os dados e comparar os arquivos
+        export_columns_to_txt(consulta_file, origem_file, 'doc_automatizado', 'DNA extraídos', txt_file, update_progress)
         root.destroy()
 
     root = tk.Tk()
@@ -79,21 +80,32 @@ def mostrar_barra_progresso(txt_file):
     root.mainloop()
 
 def exportar_dados_txt():
-    txt_file = filedialog.asksaveasfilename(filetypes=[("Arquivos TXT", "*.txt")])
+    # Pergunta qual arquivo será o de consulta
+    consulta_file = filedialog.askopenfilename(filetypes=[("Arquivos Excel", "*.xlsx")], title="Selecione o arquivo de consulta (doc_automatizado)")
+    if not consulta_file:
+        messagebox.showwarning("Cancelado", "Operação de consulta cancelada.")
+        return
+    
+    # Pergunta qual arquivo será o de origem
+    origem_file = filedialog.askopenfilename(filetypes=[("Arquivos Excel", "*.xlsx")], title="Selecione o arquivo de origem (DNA extraídos)")
+    if not origem_file:
+        messagebox.showwarning("Cancelado", "Operação de origem cancelada.")
+        return
+    
+    # Pergunta onde salvar o arquivo TXT
+    txt_file = filedialog.asksaveasfilename(filetypes=[("Arquivos TXT", "*.txt")], defaultextension=".txt", title="Salvar arquivo TXT como")
     if txt_file:
-        mostrar_barra_progresso(txt_file)
+        mostrar_barra_progresso(txt_file, consulta_file, origem_file)
 
 def concatenar_dados():
     file_path = filedialog.askopenfilename(filetypes=[("Arquivos Excel", "*.xlsx")])
     if file_path:
-        output_file_path = processar_fenotipagem(file_path)
-        messagebox.showinfo("Sucesso", f'Dados concatenados com sucesso e salvos em: {output_file_path}')
-
+        processar_fenotipagem(file_path)
+          
 def converter_xls():
     xls_file_path = filedialog.askopenfilename(filetypes=[("Arquivos XLS", "*.xls")])
     if xls_file_path:
-        xlsx_file_path = converter_xls_para_xlsx(xls_file_path)
-        messagebox.showinfo("Sucesso", f'Arquivo convertido com sucesso e salvo em: {xlsx_file_path}')
+        converter_xls_para_xlsx(xls_file_path)
 
 def mostrar_menu_principal():
     root = tk.Tk()
