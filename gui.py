@@ -53,7 +53,7 @@ def perguntar_linha_inicio():
     iniciar_button = tk.Button(frame, text="Iniciar", font=("Arial", 10), command=iniciar_script, bg="#4CAF50", fg="white", bd=0, relief="flat", padx=10, pady=5)
     iniciar_button.pack(pady=20)
     
-    centralizar_janela(root, 400, 200)
+    centralizar_janela(root, 500, 200)
     root.mainloop()
 
 def mostrar_barra_progresso(txt_file_input, origem_file, txt_file_output):
@@ -67,7 +67,7 @@ def mostrar_barra_progresso(txt_file_input, origem_file, txt_file_output):
 
     root = tk.Tk()
     root.title("Exportando Dados")
-    root.geometry("400x200")
+    root.geometry("600x300")
     root.resizable(False, False)
 
     frame = tk.Frame(root, padx=20, pady=20)
@@ -112,7 +112,8 @@ def converter_xls():
 def mostrar_menu_principal():
     root = tk.Tk()
     root.title("Hemobot - Sistema de Automação de Processos")
-    root.resizable(False, False)
+    root.geometry("800x600")
+    root.resizable(True, True)
     root.iconbitmap('C:/project/hemobot/icons8-bot-16.ico')
 
     menu_frame = tk.Frame(root)
@@ -168,7 +169,7 @@ def mostrar_menu_principal():
     criar_opcao("Converter Arquivo - XLS/XLSX", acao_converter)
     criar_opcao("Resultados - Genotipagem", acao_concatenar)
 
-    centralizar_janela(root, 500, 300)
+    centralizar_janela(root, 700, 320)
     root.mainloop()
 
 if __name__ == "__main__":

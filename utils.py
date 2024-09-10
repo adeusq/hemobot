@@ -44,13 +44,13 @@ def preencher_planilha(linha_inicio):
         pyperclip.copy(num_amostra)
         
         # Captura da PF
-        pyautogui.click(195, 325)
+        pyautogui.click(243, 399)
         pyautogui.write('=')
         pyautogui.hotkey('ctrl', 'v')
         pyautogui.write('006')
         pyautogui.press('enter')
         pyautogui.sleep(2)
-        pyautogui.click(200, 349)        
+        pyautogui.click(251, 426)        
         pyautogui.hotkey('ctrl', 'a')
         pyautogui.hotkey('ctrl', 'c')
 
@@ -58,14 +58,14 @@ def preencher_planilha(linha_inicio):
         linha[indice_coluna_destino].value = info_campo 
                 
         # Captura Tipagem ABO
-        pyautogui.click(356, 353)  
+        pyautogui.click(440, 429)  
         pyautogui.hotkey('ctrl', 'a')
         pyautogui.hotkey('ctrl', 'c')
         abo = pyperclip.paste()
         linha[indice_coluna_abo].value = abo
 
         # Captura Tipagem RhD
-        pyautogui.click(449, 350)  
+        pyautogui.click(555, 428)  
         pyautogui.hotkey('ctrl', 'a')
         pyautogui.hotkey('ctrl', 'c')
         rhd = pyperclip.paste()
