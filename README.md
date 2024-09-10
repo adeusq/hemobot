@@ -1,7 +1,7 @@
-# Hemobot - Sistema Automatizado de Dados
+# Hemobot - Sistema Automatizado de Processos
 
 ## Descrição
-O Hemobot é um sistema automatizado desenvolvido em Python para facilitar a manipulação de planilhas Excel, exportação de dados em formato TXT, conversão de arquivos XLS para XLSX e concatenação de dados de genotipagem. 
+O Hemobot é um sistema automatizado desenvolvido em Python para facilitar a manipulação de planilhas Excel, exportação de dados em formato TXT, conversão de arquivos XLS para XLSX e resultados de genotipagem. 
 
 ## Funcionalidades
 
@@ -9,15 +9,15 @@ O Hemobot é um sistema automatizado desenvolvido em Python para facilitar a man
 - **Descrição**: Preenche automaticamente uma planilha Excel com dados processados.
 - **Uso**: Seleciona o arquivo Excel e o sistema preenche as células com base nos dados fornecidos.
 
-### 2. Exportar Dados - TXT
+### 2. Exportar Dados de Extração - TXT
 - **Descrição**: Exporta os dados de uma planilha Excel para um arquivo TXT.
 - **Uso**: Seleciona a planilha Excel e define o nome do arquivo de saída em TXT.
 
-### 3. Converter XLS para XLSX
+### 3. Converter Arquivo - XLS/XLSX
 - **Descrição**: Converte arquivos no formato XLS para XLSX.
 - **Uso**: Seleciona o arquivo XLS e o sistema gera o arquivo XLSX correspondente.
 
-### 4. Concatenar Dados - Genotipagem
+### 4. Resultados - Genotipagem
 - **Descrição**: Concatena e organiza dados de genotipagem em um único arquivo.
 - **Uso**: Seleciona os arquivos de genotipagem para concatenar os dados.
 

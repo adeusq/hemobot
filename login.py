@@ -1,19 +1,33 @@
 import tkinter as tk
 from tkinter import messagebox
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 from PIL import Image, ImageTk
 from gui import mostrar_menu_principal
 
 LOGIN_FILE = "last_login.txt"
 
+SESSION_TIMEOUT_MINUTES = 30  # Tempo de expiração da sessão em minutos
+
+# Mapeamento de usuários e senhas
+USUARIOS_SENHAS = {
+    "hemobot": "H3m0b0t@2024!"    
+}
+
 def verificar_login(usuario, senha):
-    # Aqui você pode verificar o login contra um banco de dados ou arquivo
-    return usuario == "lab" and senha == "geno2024"
+    return USUARIOS_SENHAS.get(usuario) == senha
+
+def preencher_senha(usuario_entry, senha_entry):
+    usuario = usuario_entry.get()
+    senha = USUARIOS_SENHAS.get(usuario)
+    if senha:
+        senha_entry.delete(0, tk.END)  
+        senha_entry.insert(0, senha)  
+        senha_entry.config(show="*")   
 
 def salvar_data_login():
     with open(LOGIN_FILE, "w") as f:
-        f.write(datetime.now().strftime("%Y-%m-%d"))
+        f.write(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
 def carregar_data_login():
     if not os.path.exists(LOGIN_FILE):
@@ -26,13 +40,13 @@ def login():
         usuario = usuario_entry.get()
         senha = senha_entry.get()
         if verificar_login(usuario, senha):
-            messagebox.showinfo("Login", "Login bem-sucedido!")
+            messagebox.showinfo("Bem-vindo!", "Login efetuado com sucesso.\nClique em 'OK' para acessar o painel.")
             salvar_data_login()
             root.destroy()
             mostrar_menu_principal()
         else:
-            messagebox.showerror("Erro", "Usuário ou senha inválidos!")
-            
+            messagebox.showerror("Erro", "Usuário ou senha inválidos. Tente novamente.")
+
     def set_placeholder(entry, placeholder):
         entry.insert(0, placeholder)
         entry.config(fg='grey')
@@ -46,13 +60,15 @@ def login():
 
     def on_focus_out(event, placeholder):
         if event.widget.get() == "":
-            set_placeholder(event.widget, placeholder)          # type: ignore
+            set_placeholder(event.widget, placeholder)
+
+    def on_usuario_entry_change(event):
+        preencher_senha(usuario_entry, senha_entry)
 
     root = tk.Tk()
     root.title("Hemobot")
     root.iconbitmap('C:/project/hemobot/icons8-bot-16.ico')
 
-    # Define o tamanho da janela e centraliza
     largura, altura = 400, 350
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
@@ -68,12 +84,10 @@ def login():
     frame.columnconfigure(0, weight=1)
     frame.columnconfigure(1, weight=3)
 
-    # Carregar e configurar a imagem da logo
     logo = Image.open('C:/project/hemobot/logo-hemobot.png')  
-    logo = logo.resize((150, 150), Image.Resampling.LANCZOS)  # Redimensiona a logo
+    logo = logo.resize((150, 150), Image.Resampling.LANCZOS)  
     logo_photo = ImageTk.PhotoImage(logo)
 
-    # Adicionar a imagem da logo
     logo_label = tk.Label(frame, image=logo_photo)
     logo_label.grid(row=0, columnspan=2, pady=(0, 15))
     
@@ -84,6 +98,7 @@ def login():
     usuario_entry = tk.Entry(frame, font=("Arial", 12), bd=1, relief="flat")
     usuario_entry.grid(row=1, column=1, padx=5, pady=(5, 5), sticky=tk.W)
     set_placeholder(usuario_entry, placeholder_usuario)
+    usuario_entry.bind("<KeyRelease>", on_usuario_entry_change)
 
     tk.Label(frame, text="Senha:", font=("Arial", 12)).grid(row=2, column=0, padx=10, pady=(0, 5), sticky=tk.E)
     senha_entry = tk.Entry(frame, font=("Arial", 12), show="*", bd=1, relief="flat")
@@ -96,12 +111,16 @@ def login():
     root.mainloop()
 
 def verificar_login_necessario():
-    data_hoje = datetime.now().strftime("%Y-%m-%d")
-    data_ultimo_login = carregar_data_login()
-    if data_ultimo_login != data_hoje:
-        login()
+    data_hoje = datetime.now()
+    data_ultimo_login_str = carregar_data_login()
+    if data_ultimo_login_str:
+        data_ultimo_login = datetime.strptime(data_ultimo_login_str, "%Y-%m-%d %H:%M:%S")
+        if (data_hoje - data_ultimo_login) < timedelta(minutes=SESSION_TIMEOUT_MINUTES):
+            mostrar_menu_principal()
+        else:
+            login()
     else:
-        mostrar_menu_principal()
+        login()
 
 if __name__ == "__main__":
     verificar_login_necessario()

@@ -12,8 +12,14 @@ def centralizar_janela(root, largura, altura):
     root.geometry(f"{largura}x{altura}+{x}+{y}")
 
 def mostrar_sobre():
-    messagebox.showinfo("Sobre", "Desenvolvedor: Alba de Deus Moreira\nAno: 2024\nCopyright (c) 2024 Alba de Deus Moreira.\nTodos os direitos reservados.")
+    messagebox.showinfo("Hemobot - Sobre", 
+        "Hemobot - Sistema de Automação de Processos\n\n"
+        "O Hemobot automatiza processos com planilhas em rotina laboratorial de genotipagem.")
 
+def mostrar_ajuda():
+    messagebox.showinfo("Hemobot - Ajuda", 
+        "Para suporte, consulte a documentação ou entre em contato conosco.")
+    
 def fechar_sistema(root):
     root.destroy()
 
@@ -50,14 +56,13 @@ def perguntar_linha_inicio():
     centralizar_janela(root, 400, 200)
     root.mainloop()
 
-def mostrar_barra_progresso(txt_file, consulta_file, origem_file):
+def mostrar_barra_progresso(txt_file_input, origem_file, txt_file_output):
     def tarefa_longas():
         def update_progress(value):
             progresso['value'] = value
             root.update_idletasks()
 
-        # Chama a função para exportar os dados e comparar os arquivos
-        export_columns_to_txt(consulta_file, origem_file, 'doc_automatizado', 'DNA extraídos', txt_file, update_progress)
+        export_columns_to_txt(txt_file_input, origem_file, 'DNA extraídos', txt_file_output, update_progress)
         root.destroy()
 
     root = tk.Tk()
@@ -80,22 +85,19 @@ def mostrar_barra_progresso(txt_file, consulta_file, origem_file):
     root.mainloop()
 
 def exportar_dados_txt():
-    # Pergunta qual arquivo será o de consulta
-    consulta_file = filedialog.askopenfilename(filetypes=[("Arquivos Excel", "*.xlsx")], title="Selecione o arquivo de consulta (doc_automatizado)")
-    if not consulta_file:
-        messagebox.showwarning("Cancelado", "Operação de consulta cancelada.")
+    txt_file_input = filedialog.askopenfilename(filetypes=[("Arquivos TXT", "*.txt")], title="Selecione o arquivo TXT de entrada")
+    if not txt_file_input:
+        messagebox.showwarning("Cancelado", "Operação cancelada.")
         return
-    
-    # Pergunta qual arquivo será o de origem
+
     origem_file = filedialog.askopenfilename(filetypes=[("Arquivos Excel", "*.xlsx")], title="Selecione o arquivo de origem (DNA extraídos)")
     if not origem_file:
         messagebox.showwarning("Cancelado", "Operação de origem cancelada.")
         return
-    
-    # Pergunta onde salvar o arquivo TXT
-    txt_file = filedialog.asksaveasfilename(filetypes=[("Arquivos TXT", "*.txt")], defaultextension=".txt", title="Salvar arquivo TXT como")
-    if txt_file:
-        mostrar_barra_progresso(txt_file, consulta_file, origem_file)
+
+    txt_file_output = filedialog.asksaveasfilename(filetypes=[("Arquivos TXT", "*.txt")], defaultextension=".txt", title="Salvar arquivo TXT como")
+    if txt_file_output:
+        mostrar_barra_progresso(txt_file_input, origem_file, txt_file_output)
 
 def concatenar_dados():
     file_path = filedialog.askopenfilename(filetypes=[("Arquivos Excel", "*.xlsx")])
@@ -109,42 +111,36 @@ def converter_xls():
 
 def mostrar_menu_principal():
     root = tk.Tk()
-    root.title("Hemobot - Sistema de Automação")
+    root.title("Hemobot - Sistema de Automação de Processos")
     root.resizable(False, False)
     root.iconbitmap('C:/project/hemobot/icons8-bot-16.ico')
 
-    # Criar o frame para as opções de menu
     menu_frame = tk.Frame(root)
     menu_frame.pack(side=tk.TOP, fill=tk.X)
 
-    # Adicionar opções de menu no frame
-    sobre_label = tk.Label(menu_frame, text="Sobre", font=("Arial", 9), cursor="hand2")
+    sobre_label = tk.Label(menu_frame, text="Sobre", font=("Arial", 9), cursor="hand2", anchor="center")
     sobre_label.pack(side=tk.LEFT, padx=10)
     sobre_label.bind("<Button-1>", lambda e: mostrar_sobre())
 
-    ajuda_label = tk.Label(menu_frame, text="Ajuda", font=("Arial", 9), cursor="hand2")
+    ajuda_label = tk.Label(menu_frame, text="Ajuda", font=("Arial", 9), cursor="hand2", anchor="center")
     ajuda_label.pack(side=tk.LEFT, padx=10)
-    ajuda_label.bind("<Button-1>", lambda e: messagebox.showinfo("Ajuda", "Bem-vindo à seção de ajuda do Hemobot!\n\nAqui você encontrará informações úteis para navegar e utilizar todas as funcionalidades do nosso sistema de automação do Hemoce.\n\nFuncionalidades:\n\n- Preencher Planilha: Automatize o preenchimento de planilhas Excel.\n\n- Exportar Dados: Exporte dados em formato TXT.\n\n- Converter Arquivos: Converta arquivos de XLS para XLSX.\n\n- Concatenar Dados: Combine dados de genotipagem em um único arquivo.\n\nSuporte:\n\nE-mail: albadedeus@hemobot.com\nTelefone: (85) 99944-3470"))
+    ajuda_label.bind("<Button-1>", lambda e: mostrar_ajuda())
 
     sair_label = tk.Label(menu_frame, text="Sair", font=("Arial", 9), cursor="hand2")
     sair_label.pack(side=tk.LEFT, padx=10)
     sair_label.bind("<Button-1>", lambda e: fechar_sistema(root))
 
-    # Criar o frame principal para o conteúdo
     frame = tk.Frame(root, padx=20, pady=20)
     frame.pack(expand=True, fill=tk.BOTH)
 
-    label = tk.Label(frame, text="Olá! Bem-vindo ao Hemobot, um sistema de automação!", font=("Arial", 10))
+    label = tk.Label(frame, text="Olá! Bem-vindo ao Hemobot, um sistema de automação de processos.", font=("Arial", 10))
     label.pack(pady=10)
 
-    # Criar o frame para as opções com botões "Iniciar"
     option_frame = tk.Frame(frame)
     option_frame.pack(pady=10, fill=tk.X)
 
-    # Adicionar estilo aos botões
     button_style = {'font': ("Arial", 10), 'bg': "#4CAF50", 'fg': "white", 'bd': 0, 'relief': "flat", 'padx': 10, 'pady': 5}
 
-    # Funções para ações
     def acao_preencher():
         perguntar_linha_inicio()
 
@@ -157,7 +153,6 @@ def mostrar_menu_principal():
     def acao_concatenar():
         concatenar_dados()
 
-    # Adicionar opções com botões "Iniciar"
     def criar_opcao(label_text, acao):
         opcao_frame = tk.Frame(option_frame)
         opcao_frame.pack(pady=5, fill=tk.X)
@@ -169,9 +164,9 @@ def mostrar_menu_principal():
         iniciar_button.pack(side=tk.RIGHT, padx=10)
 
     criar_opcao("Automatizar Planilha - Excel", acao_preencher)
-    criar_opcao("Exportar Dados - TXT", acao_exportar)
-    criar_opcao("Converter XLS para XLSX", acao_converter)
-    criar_opcao("Concatenar Dados - Genotipagem", acao_concatenar)
+    criar_opcao("Exportar Dados de Extração - TXT", acao_exportar)
+    criar_opcao("Converter Arquivo - XLS/XLSX", acao_converter)
+    criar_opcao("Resultados - Genotipagem", acao_concatenar)
 
     centralizar_janela(root, 500, 300)
     root.mainloop()
