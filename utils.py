@@ -127,6 +127,7 @@ def clean_column_name(col_name):
     return re.sub(r'\s*\(.*?\)\s*', '', col_name)
 
 def processar_fenotipagem(file_path):
+    
     df = pd.read_excel(file_path, sheet_name='ID CORE XT Fenótipo')
     
     resultados = []
@@ -142,7 +143,9 @@ def processar_fenotipagem(file_path):
         antigenos = []
         for col in df.columns[1:]:
             value = row[col]
-            if value in ['+', '0', 'NC', 'UN'] or isinstance(value, str) and re.match(r'\+\(\d+\)', value):
+            if isinstance(value, float) and value == 0.0:
+                value = 0
+            if not pd.isna(value) and (value in ['+', '0', 'NC', 'UN'] or isinstance(value, str) and re.match(r'\+\(\d+\)', value)) or value == 0:
                 col_name = clean_column_name(col)
                 antigenos.append(f"{col_name}({value})")
 

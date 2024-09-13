@@ -1,6 +1,7 @@
 tkinter-page
 PILLOW
 openpyxl
+xlrd
 pandas
 pyautogui
 pyperclip
