@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox, filedialog, ttk
 import threading
 from utils import converter_xls_para_xlsx, export_columns_to_txt, preencher_planilha, processar_fenotipagem
+import os
 
 def centralizar_janela(root, largura, altura):
     root.update_idletasks()
@@ -100,14 +101,18 @@ def exportar_dados_txt():
         mostrar_barra_progresso(txt_file_input, origem_file, txt_file_output)
 
 def concatenar_dados():
-    file_path = filedialog.askopenfilename(filetypes=[("Arquivos Excel", "*.xlsx")])
-    if file_path:
-        processar_fenotipagem(file_path)
-          
-def converter_xls():
-    xls_file_path = filedialog.askopenfilename(filetypes=[("Arquivos XLS", "*.xls")])
-    if xls_file_path:
-        converter_xls_para_xlsx(xls_file_path)
+    xls_file_path = filedialog.askopenfilename(
+        filetypes=[("Arquivos Excel", "*.xls"), ("Todos os arquivos", "*.*")]
+    )
+
+    if not xls_file_path:
+        messagebox.showwarning("Nenhum arquivo selecionado", "Por favor, selecione um arquivo .xls para converter.")
+        return
+
+    xlsx_file_path = converter_xls_para_xlsx(xls_file_path)
+    if xlsx_file_path:
+        processar_fenotipagem(xlsx_file_path)
+        os.remove(xlsx_file_path) 
 
 def mostrar_menu_principal():
     root = tk.Tk()
@@ -148,9 +153,6 @@ def mostrar_menu_principal():
     def acao_exportar():
         exportar_dados_txt()
 
-    def acao_converter():
-        converter_xls()
-
     def acao_concatenar():
         concatenar_dados()
 
@@ -166,7 +168,6 @@ def mostrar_menu_principal():
 
     criar_opcao("Automatizar Planilha - Excel", acao_preencher)
     criar_opcao("Exportar Dados de Extração - TXT", acao_exportar)
-    criar_opcao("Converter Arquivo - XLS/XLSX", acao_converter)
     criar_opcao("Resultados - Genotipagem", acao_concatenar)
 
     centralizar_janela(root, 700, 320)

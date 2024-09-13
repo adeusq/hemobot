@@ -6,19 +6,49 @@ import tkinter as tk
 import time
 import pandas as pd
 import re
+import tempfile
+
+def criar_arquivo_modelo(caminho_arquivo):
+
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+    sheet.title = "Extraction-Log"
+    
+    headers = (['PF', 'Amostra', 'ABO', 'RhD', 'Fenotipagem'])
+    sheet.append(headers)
+    
+    for _ in range(20): 
+        sheet.append([None] * len(headers))
+    
+    workbook.save(caminho_arquivo)
 
 def preencher_planilha(linha_inicio):
     root = Tk()
     root.withdraw()
-    
+
+    caminho_arquivo_modelo = filedialog.asksaveasfilename(
+    title="Salvar Arquivo Modelo",
+    defaultextension=".xlsx",
+    filetypes=[("Arquivos Excel", "*.xlsx"), ("Todos os arquivos", "*.*")]
+    )
+
+    if caminho_arquivo_modelo:
+        criar_arquivo_modelo(caminho_arquivo_modelo)
+        messagebox.showinfo("Arquivo Modelo", f"Arquivo modelo salvo com sucesso em {caminho_arquivo_modelo}.")
+    else:
+        messagebox.showwarning("Cancelado", "Operação cancelada. O arquivo modelo não foi salvo.")
+        return
+
+    # Pergunta ao usuário o arquivo Excel a ser atualizado
     arquivo_caminho = filedialog.askopenfilename(
         title="Selecione o arquivo Excel",
-        filetypes=(("Arquivos Excel", "*.xlsx"), ("Todos os arquivos", "*.*"))
+        filetypes=[("Arquivos Excel", "*.xlsx"), ("Todos os arquivos", "*.*")]
     )
     
     if not arquivo_caminho:
         messagebox.showwarning("Nenhum arquivo selecionado", "Por favor, selecione um arquivo para continuar.")
         return
+    
     
     workbook = openpyxl.load_workbook(arquivo_caminho)
     pagina_genotipagem = workbook['Extraction-Log']
@@ -126,96 +156,84 @@ def export_columns_to_txt(txt_file_input, origem_file, origem_sheet, txt_file_ou
 def clean_column_name(col_name):
     return re.sub(r'\s*\(.*?\)\s*', '', col_name)
 
+def converter_xls_para_xlsx(xls_file_path):
+    try:
+
+        temp_xlsx_file = tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx")
+        temp_xlsx_file_path = temp_xlsx_file.name
+        temp_xlsx_file.close()
+
+        xls = pd.ExcelFile(xls_file_path)
+
+        with pd.ExcelWriter(temp_xlsx_file_path, engine='openpyxl') as writer:
+            for sheet_name in xls.sheet_names:
+                df = pd.read_excel(xls, sheet_name=sheet_name, header=None)
+                
+                if sheet_name == 'ID CORE XT Fenótipo':
+                    df = df.drop(index=range(0, 19))
+                    df = df.head(50)
+                    df = df.reset_index(drop=True)
+                
+                df.to_excel(writer, sheet_name=sheet_name, index=False, header=False)
+
+        return temp_xlsx_file_path
+
+    except Exception as e:
+        messagebox.showerror("Erro", f"Ocorreu um erro ao converter o arquivo: {e}")
+        return None
+
 def processar_fenotipagem(file_path):
-    
-    df = pd.read_excel(file_path, sheet_name='ID CORE XT Fenótipo')
-    
-    resultados = []
-    
-    for index, row in df.iterrows():
-        amostra = row.iloc[0]
-        match = re.search(r'B315\d+|B3121\d+', amostra)
-        if match:
-            amostra_id = match.group()
-        else:
-            amostra_id = amostra
-            
-        antigenos = []
-        for col in df.columns[1:]:
-            value = row[col]
-            if isinstance(value, float) and value == 0.0:
-                value = 0
-            if not pd.isna(value) and (value in ['+', '0', 'NC', 'UN'] or isinstance(value, str) and re.match(r'\+\(\d+\)', value)) or value == 0:
-                col_name = clean_column_name(col)
-                antigenos.append(f"{col_name}({value})")
+    try:
+        df = pd.read_excel(file_path, sheet_name='ID CORE XT Fenótipo')
 
-        categories = [
-            (0, 9), (9, 15), (15, 17), (17, 19), (19, 25),
-            (25, 27), (27, 31), (31, 33), (33, 35), (35, None)
-        ]
+        resultados = []
 
-        antigenos_str = '; '.join([
-            ', '.join(antigenos[start:end] if end is not None else antigenos[start:])
-            for start, end in categories
-        ])
+        for index, row in df.iterrows():
+            amostra = row.iloc[0]
+            match = re.search(r'B315\d+|B3121\d+', amostra)
+            if match:
+                amostra_id = match.group()
+            else:
+                amostra_id = amostra
 
-        resultado = f"{amostra_id}: Fenotipagem deduzida a partir da genotipagem; {antigenos_str}".rstrip('; ').rstrip('.')
-        resultados.append(resultado)
-        
-    output_file_path = filedialog.asksaveasfilename(
-        defaultextension=".txt",
-        filetypes=[("Arquivo de Texto", "*.txt")],
-        title="Salvar arquivo de resultados"
-    )
+            antigenos = []
+            for col in df.columns[1:]:
+                value = row[col]
+                if isinstance(value, float) and value == 0.0:
+                    value = 0
+                if not pd.isna(value) and (value in ['+', '0', 'NC', 'UN'] or isinstance(value, str) and re.match(r'\+\(\d+\)', value)) or value == 0:
+                    col_name = clean_column_name(col)
+                    antigenos.append(f"{col_name}({value})")
 
-    if output_file_path:
+            categories = [
+                (0, 9), (9, 15), (15, 17), (17, 19), (19, 25),
+                (25, 27), (27, 31), (31, 33), (33, 35), (35, None)
+            ]
+
+            antigenos_str = '; '.join([
+                ', '.join(antigenos[start:end] if end is not None else antigenos[start:])
+                for start, end in categories
+            ])
+
+            resultado = f"{amostra_id}: Fenotipagem deduzida a partir da genotipagem; {antigenos_str}".rstrip('; ').rstrip('.')
+            resultados.append(resultado)
+
+        output_file_path = filedialog.asksaveasfilename(
+            defaultextension=".txt",
+            filetypes=[("Arquivo de Texto", "*.txt")],
+            title="Salvar arquivo de resultados"
+        )
+
+        if output_file_path:
             try:
                 with open(output_file_path, 'w', encoding='utf-8') as f:
                     for resultado in resultados:
                         f.write(resultado + '\n\n')
-                    messagebox.showinfo("Sucesso", f"Dados concatenados com sucesso e salvos em: {output_file_path}")
+                messagebox.showinfo("Sucesso", f"Dados concatenados com sucesso e salvos em: {output_file_path}")
             except Exception as e:
-                    messagebox.showerror("Erro", f"Ocorreu um erro ao salvar o arquivo: {e}")
-    else:
-        messagebox.showwarning("Cancelado", "Operação de salvamento cancelada.")
-            
-    return output_file_path 
-
-def converter_xls_para_xlsx(xls_file_path):
-    root = tk.Tk()
-    root.withdraw() 
-
-    xlsx_file_path = filedialog.asksaveasfilename(
-        defaultextension=".xlsx",
-        filetypes=[("Arquivos Excel", "*.xlsx")],
-        title="Salvar como"
-    )
-
-    if not xlsx_file_path:
-        messagebox.showwarning("Cancelado", "Operação de salvamento cancelada.")
-        return None
-
-    try:
-        xls = pd.ExcelFile(xls_file_path)
-        
-        with pd.ExcelWriter(xlsx_file_path, engine='openpyxl') as writer:
-            for sheet_name in xls.sheet_names:
-                
-                df = pd.read_excel(xls, sheet_name=sheet_name, header=None)
-                
-                if sheet_name == 'ID CORE XT Fenótipo':
-                    
-                    df = df.drop(index=range(0, 19))
-                    
-                    df = df.head(50)
-                    
-                    df = df.reset_index(drop=True)
-                
-                df.to_excel(writer, sheet_name=sheet_name, index=False, header=False)
-        
-        messagebox.showinfo("Sucesso", f"Arquivo salvo com sucesso em: {xlsx_file_path}")
+                messagebox.showerror("Erro", f"Ocorreu um erro ao salvar o arquivo: {e}")
+        else:
+            messagebox.showwarning("Cancelado", "Operação de salvamento cancelada.")
 
     except Exception as e:
-        messagebox.showerror("Erro", f"Ocorreu um erro ao salvar o arquivo: {e}")
-
-    return xlsx_file_path
+        messagebox.showerror("Erro", f"Ocorreu um erro ao processar o arquivo: {e}")
