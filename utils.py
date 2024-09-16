@@ -7,44 +7,45 @@ import time
 import pandas as pd
 import re
 import tempfile
+import os
 
-def criar_arquivo_modelo(caminho_arquivo):
+def criar_arquivo_modelo():
 
-    workbook = openpyxl.Workbook()
-    sheet = workbook.active
-    sheet.title = "Extraction-Log"
+    caminho_arquivo_modelo = filedialog.asksaveasfilename(
+        title="Salvar Arquivo Modelo",
+        defaultextension=".xlsx",
+        filetypes=[("Arquivos Excel", "*.xlsx"), ("Todos os arquivos", "*.*")]
+    )
+
+    if caminho_arquivo_modelo:
+        workbook = openpyxl.Workbook()
+        pagina = workbook.active
+        pagina.title = "Extraction-Log"
+
     
     headers = (['PF', 'Amostra', 'ABO', 'RhD', 'Fenotipagem'])
-    sheet.append(headers)
+    pagina.append(headers)
     
     for _ in range(20): 
-        sheet.append([None] * len(headers))
+        pagina.append([None] * len(headers))
     
-    workbook.save(caminho_arquivo)
+    try:
+        workbook.save(caminho_arquivo_modelo)
+        messagebox.showinfo("Sucesso", f"Arquivo modelo criado com sucesso em {caminho_arquivo_modelo}.")
+    except Exception as e:
+        messagebox.showerror("Erro", f"Erro ao salvar o arquivo modelo: {e}")
+
 
 def preencher_planilha(linha_inicio):
     root = Tk()
     root.withdraw()
 
-    caminho_arquivo_modelo = filedialog.asksaveasfilename(
-    title="Salvar Arquivo Modelo",
+    arquivo_caminho = filedialog.asksaveasfilename(
+    title="Selecione o arquivo Excel para automatizar",
     defaultextension=".xlsx",
     filetypes=[("Arquivos Excel", "*.xlsx"), ("Todos os arquivos", "*.*")]
     )
 
-    if caminho_arquivo_modelo:
-        criar_arquivo_modelo(caminho_arquivo_modelo)
-        messagebox.showinfo("Arquivo Modelo", f"Arquivo modelo salvo com sucesso em {caminho_arquivo_modelo}.")
-    else:
-        messagebox.showwarning("Cancelado", "Operação cancelada. O arquivo modelo não foi salvo.")
-        return
-
-    # Pergunta ao usuário o arquivo Excel a ser atualizado
-    arquivo_caminho = filedialog.askopenfilename(
-        title="Selecione o arquivo Excel",
-        filetypes=[("Arquivos Excel", "*.xlsx"), ("Todos os arquivos", "*.*")]
-    )
-    
     if not arquivo_caminho:
         messagebox.showwarning("Nenhum arquivo selecionado", "Por favor, selecione um arquivo para continuar.")
         return
@@ -52,6 +53,7 @@ def preencher_planilha(linha_inicio):
     
     workbook = openpyxl.load_workbook(arquivo_caminho)
     pagina_genotipagem = workbook['Extraction-Log']
+    
     indice_coluna_destino = 0
     indice_coluna_abo = 2
     indice_coluna_rhd = 3
@@ -74,45 +76,41 @@ def preencher_planilha(linha_inicio):
         pyperclip.copy(num_amostra)
         
         # Captura da PF
-        pyautogui.click(243, 399)
+        pyautogui.click(192,327)
         pyautogui.write('=')
         pyautogui.hotkey('ctrl', 'v')
         pyautogui.write('006')
         pyautogui.press('enter')
         pyautogui.sleep(2)
-        pyautogui.click(251, 426)        
-        pyautogui.hotkey('ctrl', 'a')
-        pyautogui.hotkey('ctrl', 'c')
-
+        pyautogui.click(182,350)  
+        pyautogui.click(182,350) 
+        pyautogui.hotkey('ctrl', 'c') 
+        pyautogui.hotkey('ctrl', 'v')        
         info_campo = pyperclip.paste()
         linha[indice_coluna_destino].value = info_campo 
                 
         # Captura Tipagem ABO
-        pyautogui.click(440, 429)  
-        pyautogui.hotkey('ctrl', 'a')
-        pyautogui.hotkey('ctrl', 'c')
+        pyautogui.click(340, 351)
+        pyautogui.click(340, 351) 
+        pyautogui.hotkey('ctrl', 'c') 
+        pyautogui.hotkey('ctrl', 'v')       
         abo = pyperclip.paste()
         linha[indice_coluna_abo].value = abo
 
         # Captura Tipagem RhD
-        pyautogui.click(555, 428)  
-        pyautogui.hotkey('ctrl', 'a')
-        pyautogui.hotkey('ctrl', 'c')
+        pyautogui.click(431, 351)  
+        pyautogui.click(431, 351)  
+        pyautogui.hotkey('ctrl', 'c') 
+        pyautogui.hotkey('ctrl', 'v')      
         rhd = pyperclip.paste()
         linha[indice_coluna_rhd].value = rhd
         
-    salvar_caminho = filedialog.asksaveasfilename(
-        title="Salvar como",
-        defaultextension=".xlsx",
-        filetypes=(("Arquivos Excel", "*.xlsx"), ("Todos os arquivos", "*.*"))
-    )
+    try:
+        workbook.save(arquivo_caminho)
+        messagebox.showinfo("Arquivo salvo", f"Arquivo atualizado e salvo com sucesso em {arquivo_caminho}.")
+    except Exception as e:
+        messagebox.showerror("Erro ao salvar", f"Ocorreu um erro ao salvar o arquivo: {e}")
 
-    if salvar_caminho:
-        workbook.save(salvar_caminho)
-        messagebox.showinfo("Arquivo salvo", f"Arquivo salvo com sucesso em {salvar_caminho}.")
-    else:
-        messagebox.showwarning("Salvamento cancelado", "Arquivo não foi salvo.")     
-    
 def atualizar_progresso(progresso, valor):
     progresso['value'] = valor
     progresso.update_idletasks()
@@ -136,32 +134,32 @@ def export_columns_to_txt(txt_file_input, origem_file, origem_sheet, txt_file_ou
         messagebox.showwarning("Aviso", "Nenhum dado correspondente encontrado no arquivo de origem.")
         return
 
-    with open(txt_file_input, 'r', encoding='utf-8') as infile, open(txt_file_output, 'w', encoding='utf-8') as outfile:
+    with open(txt_file_input, 'r', encoding='utf-8') as infile:
         linhas = infile.readlines()
         total_linhas = len(linhas)
+        
+        with open(txt_file_output, 'w', encoding='utf-8') as outfile:
+            for i, linha in enumerate(linhas):
+                codigo = linha.strip()
+                amostra = codigo_para_amostra.get(codigo, "Amostra não encontrada")
 
-        for i, linha in enumerate(linhas):
-            codigo = linha.strip()
-            amostra = codigo_para_amostra.get(codigo, "Amostra não encontrada")
+                outfile.write(f"{amostra}\t{codigo}\n")
 
-            outfile.write(f"{amostra}\t{codigo}\n")
-
-            if update_progress:
-                progress = (i + 1) / total_linhas * 100
-                update_progress(progress)
-                time.sleep(0.05)  
+                if update_progress:
+                    progress = (i + 1) / total_linhas * 100
+                    update_progress(progress)
+                    time.sleep(0.05)  
                 
-    messagebox.showinfo("Sucesso", f'Dados exportados para {txt_file_output} com sucesso!')
+    messagebox.showinfo("Sucesso", f'Dados exportados para {txt_file_input} com sucesso!')
    
 def clean_column_name(col_name):
     return re.sub(r'\s*\(.*?\)\s*', '', col_name)
 
 def converter_xls_para_xlsx(xls_file_path):
     try:
-
-        temp_xlsx_file = tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx")
-        temp_xlsx_file_path = temp_xlsx_file.name
-        temp_xlsx_file.close()
+        input_directory = os.path.dirname(xls_file_path)
+        
+        temp_xlsx_file_path = os.path.join(input_directory, os.path.basename(xls_file_path).replace('.xls', '.xlsx'))
 
         xls = pd.ExcelFile(xls_file_path)
 
@@ -182,7 +180,7 @@ def converter_xls_para_xlsx(xls_file_path):
         messagebox.showerror("Erro", f"Ocorreu um erro ao converter o arquivo: {e}")
         return None
 
-def processar_fenotipagem(file_path):
+def processar_fenotipagem(file_path, output_directory):
     try:
         df = pd.read_excel(file_path, sheet_name='ID CORE XT Fenótipo')
 
@@ -217,23 +215,15 @@ def processar_fenotipagem(file_path):
 
             resultado = f"{amostra_id}: Fenotipagem deduzida a partir da genotipagem; {antigenos_str}".rstrip('; ').rstrip('.')
             resultados.append(resultado)
+            
+        input_filename = os.path.splitext(os.path.basename(file_path))[0]
+        output_file_path = os.path.join(output_directory, f"Resultado {input_filename}.txt")
 
-        output_file_path = filedialog.asksaveasfilename(
-            defaultextension=".txt",
-            filetypes=[("Arquivo de Texto", "*.txt")],
-            title="Salvar arquivo de resultados"
-        )
+        with open(output_file_path, 'w', encoding='utf-8') as f:
+            for resultado in resultados:
+                f.write(resultado + '\n\n')
 
-        if output_file_path:
-            try:
-                with open(output_file_path, 'w', encoding='utf-8') as f:
-                    for resultado in resultados:
-                        f.write(resultado + '\n\n')
-                messagebox.showinfo("Sucesso", f"Dados concatenados com sucesso e salvos em: {output_file_path}")
-            except Exception as e:
-                messagebox.showerror("Erro", f"Ocorreu um erro ao salvar o arquivo: {e}")
-        else:
-            messagebox.showwarning("Cancelado", "Operação de salvamento cancelada.")
-
+        messagebox.showinfo("Sucesso", f"Dados salvos com sucesso em: {os.path.abspath(output_file_path)}")
+    
     except Exception as e:
         messagebox.showerror("Erro", f"Ocorreu um erro ao processar o arquivo: {e}")

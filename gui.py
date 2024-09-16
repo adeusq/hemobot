@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox, filedialog, ttk
 import threading
-from utils import converter_xls_para_xlsx, export_columns_to_txt, preencher_planilha, processar_fenotipagem
+from utils import converter_xls_para_xlsx, export_columns_to_txt, preencher_planilha, processar_fenotipagem, criar_arquivo_modelo
 import os
 
 def centralizar_janela(root, largura, altura):
@@ -28,35 +28,6 @@ def voltar_menu(root):
     root.destroy()
     mostrar_menu_principal()
 
-def perguntar_linha_inicio():
-    def iniciar_script():
-        linha_inicio = linha_inicio_entry.get()
-        if linha_inicio.isdigit():
-            preencher_planilha(int(linha_inicio))
-            voltar_menu(root)
-        else:
-            messagebox.showerror("Erro", "Por favor, insira um número válido.")
-
-    root = tk.Tk()
-    root.title("Preencher Planilha - Hemobot")
-    root.resizable(False, False)
-    root.iconbitmap('C:/project/hemobot/icons8-bot-16.ico')
-
-    frame = tk.Frame(root, padx=20, pady=20)
-    frame.pack(expand=True, fill=tk.BOTH)
-
-    label = tk.Label(frame, text="Digite a partir de qual linha começar:", font=("Arial", 10))
-    label.pack(pady=10)
-
-    linha_inicio_entry = tk.Entry(frame, font=("Arial", 10), width=15)
-    linha_inicio_entry.pack(pady=5)
-
-    iniciar_button = tk.Button(frame, text="Iniciar", font=("Arial", 10), command=iniciar_script, bg="#4CAF50", fg="white", bd=0, relief="flat", padx=10, pady=5)
-    iniciar_button.pack(pady=20)
-    
-    centralizar_janela(root, 500, 200)
-    root.mainloop()
-
 def mostrar_barra_progresso(txt_file_input, origem_file, txt_file_output):
     def tarefa_longas():
         def update_progress(value):
@@ -68,7 +39,7 @@ def mostrar_barra_progresso(txt_file_input, origem_file, txt_file_output):
 
     root = tk.Tk()
     root.title("Exportando Dados")
-    root.geometry("600x300")
+    root.geometry("400x150")
     root.resizable(False, False)
 
     frame = tk.Frame(root, padx=20, pady=20)
@@ -85,34 +56,44 @@ def mostrar_barra_progresso(txt_file_input, origem_file, txt_file_output):
 
     root.mainloop()
 
+def botao_download():
+    root = tk.Tk()
+    root.title("Hemobot - Sistema de Automação de Processos")
+    botao_modelo = tk.Button(root, text="Baixar Arquivo Modelo para Automação", command=criar_arquivo_modelo)
+    botao_modelo.pack(pady=20)
+    root.mainloop()
+    botao_download()
+
 def exportar_dados_txt():
-    txt_file_input = filedialog.askopenfilename(filetypes=[("Arquivos TXT", "*.txt")], title="Selecione o arquivo TXT de entrada")
+    txt_file_input = filedialog.askopenfilename(filetypes=[("Arquivos TXT", "*.txt")], title="Selecione o arquivo TXT contendo o código de extração")
     if not txt_file_input:
         messagebox.showwarning("Cancelado", "Operação cancelada.")
         return
 
-    origem_file = filedialog.askopenfilename(filetypes=[("Arquivos Excel", "*.xlsx")], title="Selecione o arquivo de origem (DNA extraídos)")
+    origem_file = filedialog.askopenfilename(filetypes=[("Arquivos Excel", "*.xlsx")], title="Selecione o arquivo de busca contendo a aba 'DNA extraídos'")
     if not origem_file:
         messagebox.showwarning("Cancelado", "Operação de origem cancelada.")
         return
 
-    txt_file_output = filedialog.asksaveasfilename(filetypes=[("Arquivos TXT", "*.txt")], defaultextension=".txt", title="Salvar arquivo TXT como")
-    if txt_file_output:
-        mostrar_barra_progresso(txt_file_input, origem_file, txt_file_output)
+    mostrar_barra_progresso(txt_file_input, origem_file, txt_file_input)
 
 def concatenar_dados():
-    xls_file_path = filedialog.askopenfilename(
-        filetypes=[("Arquivos Excel", "*.xls"), ("Todos os arquivos", "*.*")]
-    )
+    xls_file_path = filedialog.askopenfilename(filetypes=[("Arquivos Excel", "*.xls"), ("Todos os arquivos", "*.*")], title="Selecione o arquivo de resultado")
 
     if not xls_file_path:
-        messagebox.showwarning("Nenhum arquivo selecionado", "Por favor, selecione um arquivo .xls para converter.")
+        messagebox.showwarning("Nenhum arquivo selecionado", "Por favor, selecione um arquivo para gerar resultados.")
         return
 
     xlsx_file_path = converter_xls_para_xlsx(xls_file_path)
+    
     if xlsx_file_path:
-        processar_fenotipagem(xlsx_file_path)
-        os.remove(xlsx_file_path) 
+        output_directory = os.path.dirname(xls_file_path)
+        processar_fenotipagem(xlsx_file_path, output_directory)
+        
+        try:
+            os.remove(xlsx_file_path)
+        except Exception as e:
+            messagebox.showwarning
 
 def mostrar_menu_principal():
     root = tk.Tk()
@@ -147,9 +128,12 @@ def mostrar_menu_principal():
 
     button_style = {'font': ("Arial", 10), 'bg': "#4CAF50", 'fg': "white", 'bd': 0, 'relief': "flat", 'padx': 10, 'pady': 5}
 
+    def acao_baixar():
+        criar_arquivo_modelo()
+        
     def acao_preencher():
-        perguntar_linha_inicio()
-
+        preencher_planilha(1)
+        
     def acao_exportar():
         exportar_dados_txt()
 
@@ -166,6 +150,7 @@ def mostrar_menu_principal():
         iniciar_button = tk.Button(opcao_frame, text="Iniciar", **button_style, command=acao)
         iniciar_button.pack(side=tk.RIGHT, padx=10)
 
+    criar_opcao("Baixar Arquivo Modelo", acao_baixar)
     criar_opcao("Automatizar Planilha - Excel", acao_preencher)
     criar_opcao("Exportar Dados de Extração - TXT", acao_exportar)
     criar_opcao("Resultados - Genotipagem", acao_concatenar)
