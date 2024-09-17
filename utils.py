@@ -35,7 +35,6 @@ def criar_arquivo_modelo():
     except Exception as e:
         messagebox.showerror("Erro", f"Erro ao salvar o arquivo modelo: {e}")
 
-
 def preencher_planilha(linha_inicio):
     root = Tk()
     root.withdraw()
@@ -76,30 +75,30 @@ def preencher_planilha(linha_inicio):
         pyperclip.copy(num_amostra)
         
         # Captura da PF
-        pyautogui.click(192,327)
+        pyautogui.click(223,361)
         pyautogui.write('=')
         pyautogui.hotkey('ctrl', 'v')
         pyautogui.write('006')
         pyautogui.press('enter')
         pyautogui.sleep(2)
-        pyautogui.click(182,350)  
-        pyautogui.click(182,350) 
+        pyautogui.click(214,381)  
+        pyautogui.click(214,381) 
         pyautogui.hotkey('ctrl', 'c') 
         pyautogui.hotkey('ctrl', 'v')        
         info_campo = pyperclip.paste()
         linha[indice_coluna_destino].value = info_campo 
                 
         # Captura Tipagem ABO
-        pyautogui.click(340, 351)
-        pyautogui.click(340, 351) 
+        pyautogui.click(381, 385)
+        pyautogui.click(381, 385) 
         pyautogui.hotkey('ctrl', 'c') 
         pyautogui.hotkey('ctrl', 'v')       
         abo = pyperclip.paste()
         linha[indice_coluna_abo].value = abo
 
         # Captura Tipagem RhD
-        pyautogui.click(431, 351)  
-        pyautogui.click(431, 351)  
+        pyautogui.click(470, 386)  
+        pyautogui.click(470, 386)  
         pyautogui.hotkey('ctrl', 'c') 
         pyautogui.hotkey('ctrl', 'v')      
         rhd = pyperclip.paste()
@@ -195,6 +194,8 @@ def processar_fenotipagem(file_path, output_directory):
                 amostra_id = amostra
 
             antigenos = []
+            observacoes = set()
+
             for col in df.columns[1:]:
                 value = row[col]
                 if isinstance(value, float) and value == 0.0:
@@ -203,17 +204,32 @@ def processar_fenotipagem(file_path, output_directory):
                     col_name = clean_column_name(col)
                     antigenos.append(f"{col_name}({value})")
 
+                    if re.search(r'\(2\)', str(value)):
+                        observacoes.add("(2) Expressão débil de antígenos como detectado por alguns anticorpos.")
+                    if re.search(r'\(3\)', str(value)):
+                        observacoes.add("(3) Expressão parcial de antígenos como detectado por alguns anticorpos.")
+                    if re.search(r'\(6\)', str(value)):
+                        observacoes.add("(6) Expressão parcial de antígenos como detectado por alguns anticorpos.")
+                    if re.search(r'\(7\)', str(value)):
+                        observacoes.add("(7) Expressão parcial ou fraca de antígenos como detectado por alguns anticorpos.")
+                    if re.search(r'\(29\)', str(value)):
+                        observacoes.add("(29) Expressão parcial de antígenos como detectado por alguns anticorpos.")
+
             categories = [
                 (0, 9), (9, 15), (15, 17), (17, 19), (19, 25),
                 (25, 27), (27, 31), (31, 33), (33, 35), (35, None)
             ]
 
-            antigenos_str = '; '.join([
+            antigenos_str = '\n'.join([
                 ', '.join(antigenos[start:end] if end is not None else antigenos[start:])
                 for start, end in categories
             ])
 
-            resultado = f"{amostra_id}: Fenotipagem deduzida a partir da genotipagem; {antigenos_str}".rstrip('; ').rstrip('.')
+            resultado = f"{amostra_id}:\nFenotipagem deduzida a partir da genotipagem;\n{antigenos_str}".rstrip('; ').rstrip('.')
+            
+            if observacoes:
+                resultado += "\n\n" + "\n".join(observacoes)
+
             resultados.append(resultado)
             
         input_filename = os.path.splitext(os.path.basename(file_path))[0]
