@@ -195,6 +195,13 @@ def processar_fenotipagem(file_path, output_directory):
 
             antigenos = []
             observacoes = set()
+            sangue_raro_msg = []
+
+            valor_s = None
+            valor_s_pequeno = None
+            valor_m = valor_n = None
+            valor_jka = valor_jkb = None
+            valor_hrb = valor_e = None
 
             for col in df.columns[1:]:
                 value = row[col]
@@ -203,7 +210,7 @@ def processar_fenotipagem(file_path, output_directory):
                 if not pd.isna(value) and (value in ['+', '0', 'NC', 'UN'] or isinstance(value, str) and re.match(r'\+\(\d+\)', value)) or value == 0:
                     col_name = clean_column_name(col)
                     antigenos.append(f"{col_name}({value})")
-
+                    
                     if re.search(r'\(2\)', str(value)):
                         observacoes.add("(2) Expressão débil de antígenos como detectado por alguns anticorpos.")
                     if re.search(r'\(3\)', str(value)):
@@ -214,6 +221,97 @@ def processar_fenotipagem(file_path, output_directory):
                         observacoes.add("(7) Expressão parcial ou fraca de antígenos como detectado por alguns anticorpos.")
                     if re.search(r'\(29\)', str(value)):
                         observacoes.add("(29) Expressão parcial de antígenos como detectado por alguns anticorpos.")
+
+                    if col_name == 'Kpb' and value == 0:
+                        sangue_raro_msg.append('Kpb-')
+                    if col_name == 'k' and value == 0:
+                        sangue_raro_msg.append('k-')
+
+                    if col_name == 'S':
+                        valor_s = value
+
+                    if col_name == 's':
+                        valor_s_pequeno = value
+
+                    if col_name == 'M':
+                        valor_m = value  
+                    if col_name == 'N':
+                        valor_n = value 
+
+                    if col_name == 'Jka':
+                        valor_jka = value 
+                    if col_name == 'Jkb':
+                        valor_jkb = value 
+
+                    if col_name == 'hrB':
+                        valor_hrb = value
+                    if col_name == 'e':
+                        valor_e = value
+
+                    if col_name == 'Dib' and value == 0:
+                        sangue_raro_msg.append('Dib-')
+                    if col_name == 'Lub' and value == 0:
+                        sangue_raro_msg.append('Lub-')
+                    if col_name == 'Coa' and value == 0:
+                        sangue_raro_msg.append('Coa-')
+                    if col_name == 'Yta' and value == 0:
+                        sangue_raro_msg.append('Yta-')
+                    if col_name == 'Jsb' and value == 0:
+                        sangue_raro_msg.append('Jsb-')
+                    if col_name == 'Hy' and value == 0:
+                        sangue_raro_msg.append('Hy-')
+                    if col_name == 'Joa' and value == 0:
+                        sangue_raro_msg.append('Joa-')
+
+            # Verificar combinação S(0) e s(0)
+            try:
+                valor_s = float(valor_s)
+            except (ValueError, TypeError):
+                valor_s = None
+
+            try:
+                valor_s_pequeno = float(valor_s_pequeno)
+            except (ValueError, TypeError):
+                valor_s_pequeno = None
+
+            if valor_s == 0 and valor_s_pequeno == 0:
+                sangue_raro_msg.append('S- e s-')
+
+            try:
+                valor_n = float(valor_n)
+            except (ValueError, TypeError):
+                valor_n = None
+
+            if valor_m == 0 and valor_n == 0:
+                sangue_raro_msg.append('M- e N-')
+
+            # Verificar combinação Jka(0) e Jkb(0)
+            try:
+                valor_jka = float(valor_jka)
+            except (ValueError, TypeError):
+                valor_jka = None
+
+            try:
+                valor_jkb = float(valor_jkb)
+            except (ValueError, TypeError):
+                valor_jkb = None
+
+            if valor_jka == 0 and valor_jkb == 0:
+                sangue_raro_msg.append('Jka- e Jkb-')
+
+            # Verificar combinação hrB(0)
+            try:
+                valor_hrb = float(valor_hrb)
+            except (ValueError, TypeError):
+                valor_hrb = None
+
+            if isinstance(valor_e, str) and '+' in valor_e:
+                valor_e = '+'
+            else:
+                valor_e = None
+
+            if valor_hrb == 0 and valor_e == '+':
+                sangue_raro_msg.append('hrB-')  
 
             categories = [
                 (0, 9), (9, 15), (15, 17), (17, 19), (19, 25),
@@ -229,6 +327,9 @@ def processar_fenotipagem(file_path, output_directory):
             
             if observacoes:
                 resultado += "\n\n" + "\n".join(observacoes)
+
+            if sangue_raro_msg:
+                resultado += f"\n\nIndivíduo com SANGUE RARO [{', '.join(sangue_raro_msg)}]. Caso necessite transfundir, entrar em contato com o hemocentro coordenador."
 
             resultados.append(resultado)
             

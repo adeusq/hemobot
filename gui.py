@@ -150,10 +150,10 @@ def mostrar_menu_principal():
         iniciar_button = tk.Button(opcao_frame, text="Iniciar", **button_style, command=acao)
         iniciar_button.pack(side=tk.RIGHT, padx=10)
 
-    criar_opcao("Baixar Arquivo Modelo", acao_baixar)
-    criar_opcao("Automatizar Planilha - Excel", acao_preencher)
-    criar_opcao("Exportar Dados de Extração - TXT", acao_exportar)
-    criar_opcao("Resultados - Genotipagem", acao_concatenar)
+    criar_opcao("Download Arquivo Modelo SAD", acao_baixar)
+    criar_opcao("Seleção de Amostras de Doadores (SAD)", acao_preencher)
+    criar_opcao("Arquivo de Importação de Rotina (AIR)", acao_exportar)
+    criar_opcao("Resultado de Rotina de Genotipagem (RRG)", acao_concatenar)
 
     centralizar_janela(root, 700, 320)
     root.mainloop()
