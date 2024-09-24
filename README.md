@@ -1,39 +1,26 @@
-# Hemobot - Sistema Automatizado de Processos
+# Hemobot - Sistema de Automação de Processos
 
-## Descrição
-O Hemobot é um sistema automatizado desenvolvido em Python para facilitar a manipulação de planilhas Excel, exportação de dados em formato TXT, conversão de arquivos XLS para XLSX e resultados de genotipagem. 
+## Sobre o Projeto
+O Hemobot é um sistema desenvolvido para automatizar processos em laboratórios, especificamente focado na manipulação e análise de dados de genotipagem. Ele oferece várias funcionalidades para facilitar o gerenciamento e a transformação de dados, permitindo que você economize tempo e reduza erros manuais.
 
-## Funcionalidades
+## Funcionalidades Principais
 
-### 1. Automatizar Planilha - Excel
-- **Descrição**: Preenche automaticamente uma planilha Excel com dados processados.
-- **Uso**: Seleciona o arquivo Excel e o sistema preenche as células com base nos dados fornecidos.
+1. **Download Arquivo Modelo SAD**: Baixe um arquivo modelo com a estrutura necessária para realizar a automação de processos.
 
-### 2. Exportar Dados de Extração - TXT
-- **Descrição**: Exporta os dados de uma planilha Excel para um arquivo TXT.
-- **Uso**: Seleciona a planilha Excel e define o nome do arquivo de saída em TXT.
+2. **Seleção de Amostras de Doadores (SAD)**: Preencha automaticamente uma planilha com base em dados fornecidos. Ideal para a seleção e organização de amostras de doadores.
 
-### 3. Converter Arquivo - XLS/XLSX
-- **Descrição**: Converte arquivos no formato XLS para XLSX.
-- **Uso**: Seleciona o arquivo XLS e o sistema gera o arquivo XLSX correspondente.
+3. **Arquivo de Importação de Rotina (AIR)**: Exporte colunas específicas de uma planilha para um arquivo `.txt`, facilitando a integração com outros sistemas.
 
-### 4. Resultados - Genotipagem
-- **Descrição**: Concatena e organiza dados de genotipagem em um único arquivo.
-- **Uso**: Seleciona os arquivos de genotipagem para concatenar os dados.
-
-## Interface Gráfica (GUI)
-O Hemobot possui uma interface gráfica desenvolvida com Tkinter, onde o usuário pode interagir com as funcionalidades mencionadas através de botões intuitivos.
-
-## Requisitos
-- Python 3.7+
-- Bibliotecas: `tkinter`, `openpyxl`, `pyautogui`, `pyperclip`, `Pillow`, `pandas`
+4. **Resultado de Rotina de Genotipagem (RRG)**: Concatene os resultados de genotipagem em um formato padronizado, pronto para análise ou inserção no sistema.
 
 ## Instalação
-1. Clone o repositório:
+
+1. Clone este repositório para sua máquina local:
 
    ```bash
-   git clone https://github.com/usuario/hemobot.git
+   git clone https://github.com/adeusq/hemobot.git
 
-2. Download das dependências:
+2. Instale as dependências necessárias. Certifique-se de que você tenha o Python 3.x instalado e utilize um ambiente virtual:
+
    ```bash
-   pip install -r requirements.txt
+pip install -r requirements.txt
